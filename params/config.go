@@ -94,6 +94,14 @@ var (
 			TimeoutPeriod:        30,
 			MinePeriod:           2,
 		},
+		13625855: { // 2024.07.29 RPC call and reorg sync issue
+			MaxMasternodes:       108,
+			SwitchRound:          13625855,
+			CertThreshold:        0.4,
+			TimeoutSyncThreshold: 3,
+			TimeoutPeriod:        30,
+			MinePeriod:           2,
+		},
 	}
 
 	UnitTestV2Configs = map[uint64]*V2Config{
@@ -626,6 +634,10 @@ func (c *ChainConfig) IsTIPXDCXReceiver(num *big.Int) bool {
 	return isForked(common.TIPXDCX, num) && !isForked(common.TIPXDCXReceiverDisable, num)
 }
 
+func (c *ChainConfig) IsXDCxDisable(num *big.Int) bool {
+	return isForked(common.TIPXDCXReceiverDisable, num)
+}
+
 func (c *ChainConfig) IsTIPXDCXLending(num *big.Int) bool {
 	return isForked(common.TIPXDCXLending, num)
 }
@@ -789,7 +801,7 @@ func (c *ChainConfig) Rules(num *big.Int) Rules {
 		IsLondon:         c.IsLondon(num),
 		IsMerge:          c.IsMerge(num),
 		IsShanghai:       c.IsShanghai(num),
-		IsXDCxDisable:    c.IsTIPXDCXReceiver(num),
+		IsXDCxDisable:    c.IsXDCxDisable(num),
 		IsEIP1559:        c.IsEIP1559(num),
 	}
 }
