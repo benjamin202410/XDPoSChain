@@ -46,7 +46,7 @@ var TIPXDCXLending = big.NewInt(23779191)
 var TIPXDCXCancellationFee = big.NewInt(23779191)
 var TIPXDCXCancellationFeeTestnet = big.NewInt(23779191)
 var TIPXDCXMinerDisable = big.NewInt(61290000) // Target 31st March 2024
-var TIPXDCXReceiverDisable = big.NewInt(9999999999)
+var TIPXDCXReceiverDisable = big.NewInt(66825000) // Target 26 Aug 2024
 var BerlinBlock = big.NewInt(61290000)
 var LondonBlock = big.NewInt(61290000)
 var MergeBlock = big.NewInt(61290000)
@@ -54,7 +54,7 @@ var ShanghaiBlock = big.NewInt(61290000) // Target 31st March 2024
 var Eip1559Block = big.NewInt(9999999999)
 
 var TIPXDCXTestnet = big.NewInt(23779191)
-var IsTestnet bool = false
+var IsTestnet bool = true
 var Enable0xPrefix bool = true
 var StoreRewardFolder string
 var RollbackHash Hash

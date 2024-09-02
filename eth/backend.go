@@ -189,11 +189,14 @@ func New(ctx *node.ServiceContext, config *ethconfig.Config, XDCXServ *XDCx.XDCX
 	eth.txPool = core.NewTxPool(config.TxPool, eth.chainConfig, eth.blockchain)
 	eth.orderPool = core.NewOrderPool(eth.chainConfig, eth.blockchain)
 	eth.lendingPool = core.NewLendingPool(eth.chainConfig, eth.blockchain)
-	if common.RollbackHash != common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000") {
+	if common.RollbackHash != (common.Hash{}) {
 		curBlock := eth.blockchain.CurrentBlock()
+		if curBlock == nil {
+			log.Warn("not find current block when rollback")
+		}
 		prevBlock := eth.blockchain.GetBlockByHash(common.RollbackHash)
 
-		if curBlock.NumberU64() > prevBlock.NumberU64() {
+		if curBlock != nil && prevBlock != nil && curBlock.NumberU64() > prevBlock.NumberU64() {
 			for ; curBlock != nil && curBlock.NumberU64() != prevBlock.NumberU64(); curBlock = eth.blockchain.GetBlock(curBlock.ParentHash(), curBlock.NumberU64()-1) {
 				eth.blockchain.Rollback([]common.Hash{curBlock.Hash()})
 			}
@@ -205,6 +208,8 @@ func New(ctx *node.ServiceContext, config *ethconfig.Config, XDCXServ *XDCx.XDCX
 				log.Crit("Err Rollback", "err", err)
 				return nil, err
 			}
+		} else {
+			log.Error("skip SetHead because target block is nil when rollback")
 		}
 	}
 
@@ -397,7 +402,7 @@ func (s *Ethereum) APIs() []rpc.API {
 		}, {
 			Namespace: "eth",
 			Version:   "1.0",
-			Service:   filters.NewPublicFilterAPI(s.ApiBackend, false),
+			Service:   filters.NewFilterAPI(filters.NewFilterSystem(s.ApiBackend, filters.Config{LogCacheSize: s.config.FilterLogCacheSize}), false),
 			Public:    true,
 		}, {
 			Namespace: "admin",
@@ -476,28 +481,6 @@ func (s *Ethereum) ValidateMasternode() (bool, error) {
 		return false, errors.New("Only verify masternode permission in XDPoS protocol")
 	}
 	return true, nil
-}
-
-// ValidateMasternodeTestNet checks if node's address is in set of masternodes in Testnet
-func (s *Ethereum) ValidateMasternodeTestnet() (bool, error) {
-	eb, err := s.Etherbase()
-	if err != nil {
-		return false, err
-	}
-	if s.chainConfig.XDPoS == nil {
-		return false, errors.New("Only verify masternode permission in XDPoS protocol")
-	}
-	masternodes := []common.Address{
-		common.HexToAddress("0x3Ea0A3555f9B1dE983572BfF6444aeb1899eC58C"),
-		common.HexToAddress("0x4F7900282F3d371d585ab1361205B0940aB1789C"),
-		common.HexToAddress("0x942a5885A8844Ee5587C8AC5e371Fc39FFE61896"),
-	}
-	for _, m := range masternodes {
-		if m == eb {
-			return true, nil
-		}
-	}
-	return false, nil
 }
 
 func (s *Ethereum) StartStaking(local bool) error {
